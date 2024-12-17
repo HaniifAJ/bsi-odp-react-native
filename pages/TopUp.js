@@ -14,12 +14,38 @@ import {
 import Box from "../components/Box";
 import { cloneElement, useState } from "react";
 import Transaction from "../components/Transaction";
+import {api} from '../api'
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function TopUp({ navigation }) {
   const [receiver, setReceiver] = useState("");
-  const [transfer, setTransfer] = useState(0);
+  const [amount, setAmount] = useState(0);
   const [notes, setNotes] = useState("");
   const [payment, setPayment] = useState('')
+
+  const createTopUp = async () => {
+    console.log('hai')
+    let payload = {
+      type: 'c',
+      from_to: '283763',
+      amount: amount,
+    }
+    if(notes != '') payload.description = notes
+    try {
+      
+      console.log('token')
+      const token = await AsyncStorage.getItem('userToken')
+      const response = await api.post('/transactions', payload, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      console.log(response.data)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   return (
     <SafeAreaView>
       <View
@@ -45,12 +71,12 @@ export default function TopUp({ navigation }) {
               <TextInput
                 style={{ verticalAlign: "middle", fontSize: 28, width: '100%' }}
                 value={
-                  transfer == 0 ? "" : Intl.NumberFormat("id").format(transfer)
+                  amount == 0 ? "" : Intl.NumberFormat("id").format(amount)
                 }
                 placeholder="0"
                 keyboardType="numeric"
                 onChangeText={(text) =>
-                  setTransfer(reverseFormatNumber(text, "id"))
+                  setAmount(reverseFormatNumber(text, "id"))
                 }
                 />
             </View>
@@ -96,7 +122,7 @@ export default function TopUp({ navigation }) {
         </View>
         <View style={{flex: 1}}></View>
         <View style={{ width: "100%", alignSelf: 'flex-end'}}>
-          <TouchableOpacity style={styles.btnLogin}>
+          <TouchableOpacity style={styles.btnLogin} onPress={() => createTopUp()}>
             <Text style={{ textAlign: "center", color: "white" }}>
               Top Up
             </Text>

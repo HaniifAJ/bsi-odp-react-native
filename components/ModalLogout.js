@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {Alert, Modal, StyleSheet, Text, Button, View, SafeAreaView, Pressable, ScrollView} from 'react-native';
 
-export default function LogoutModal({modalState = useState(false), navigation}) {
+export default function LogoutModal({modalState = useState(false), navigation, logout}) {
   const [modalVisible, setModalVisible] = modalState;
   return (
     <SafeAreaView style={styles.centeredView}>
@@ -16,7 +16,7 @@ export default function LogoutModal({modalState = useState(false), navigation}) 
               <Text style={styles.modalText}>Konfirmasi Logout</Text>
               <View style={{flexDirection: 'row', gap: 30}}>
                 <Button title="Cancel" onPress={() => setModalVisible(false)} />
-                <Button color={'red'} title="Logout" onPress={() => {setModalVisible(false); navigation.navigate('Login')}} />
+                <Button color={'red'} title="Logout" onPress={() => {setModalVisible(false); logout(); navigation.navigate('Home')}} />
               </View>
             </View>
         </Modal>

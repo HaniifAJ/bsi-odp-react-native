@@ -18,6 +18,29 @@ export default function Transfer({ navigation }) {
   const [receiver, setReceiver] = useState("");
   const [transfer, setTransfer] = useState(0);
   const [notes, setNotes] = useState("");
+
+  const createTransfer = async () => {
+    console.log('hai')
+    let payload = {
+      type: 'd',
+      from_to: receiver,
+      amount: amount,
+    }
+    if(notes != '') payload.description = notes
+    try {
+      console.log('token')
+      const token = await AsyncStorage.getItem('userToken')
+      const response = await api.post('/transactions', payload, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      console.log(response.data)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   return (
     <SafeAreaView>
       <View

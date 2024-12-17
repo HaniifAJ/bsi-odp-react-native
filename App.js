@@ -7,6 +7,8 @@ import Transfer from './pages/Transfer';
 import TopUp from './pages/TopUp';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from '@expo/vector-icons/Ionicons'
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { useEffect } from 'react';
 
 const Tab = createBottomTabNavigator();
 
@@ -45,31 +47,47 @@ function MyTabs() {
 
 const Stack = createNativeStackNavigator();
 
-export default function App() {
+function Route() {
+  const {user, getToken} = useAuth()
+  useEffect(() => {getToken()}, [])
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
-        <Stack.Screen 
+      <Stack.Navigator>
+        {!user ? (
+          <>
+          <Stack.Screen 
           name="Login" 
           component={Login} 
           options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
+          />
+          <Stack.Screen 
           name="Register" 
           component={Register} 
           options={{ headerShown: false }} 
-        />
+          />
+          </>
+        )
+        :
         <Stack.Screen 
-          name="Home" 
-          component={MyTabs} 
-          options={{ headerShown: false }} 
+        name="Home" 
+        component={MyTabs} 
+        options={{ headerShown: false }} 
         />
+        }
         {/* <Stack.Screen 
           name="Home" 
           component={Home} 
           options={{ headerShown: false }} 
-        /> */}
+          /> */}
       </Stack.Navigator>
     </NavigationContainer>
   );
+}
+
+export default function App(){
+  return (
+    <AuthProvider>
+      <Route />
+    </AuthProvider>
+  )
 }

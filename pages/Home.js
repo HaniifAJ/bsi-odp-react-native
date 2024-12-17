@@ -1,12 +1,21 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Image, ImageBackground, ScrollView, Button, SafeAreaView, TouchableOpacity, FlatList } from 'react-native';
 import Box from '../components/Box';
-import { cloneElement, useState } from 'react';
+import { cloneElement, useEffect, useState } from 'react';
 import Transaction from '../components/Transaction';
 import Ionicons from '@expo/vector-icons/Ionicons'
 import LogoutModal from '../components/ModalLogout';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../context/AuthContext';
+
 
 export default function Home({ navigation }) {
+  const {user, login, logout} = useAuth()
+  
+  const api = axios.create({
+    baseURL: 'http://54.254.164.127/api/v1',
+  })
 
     const [modal, setModal] = useState(false)
 
@@ -61,9 +70,48 @@ export default function Home({ navigation }) {
         },
     ]
 
+    const [myData, setMyData] = useState({})
+    const [myTransactions, setMyTransactions] = useState([])
+    
+    useEffect(() => {
+      const getMyData = async () => {
+        try {
+          const token = await AsyncStorage.getItem('userToken')
+          const result = await api.get('/users/me', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+          console.log(result.data)
+          setMyData(result.data.data)
+        } catch (error) {
+          console.log(error)
+        }
+      }
+      getMyData()
+    }, [])
+
+    useEffect(() => {
+      const getMyTransactions = async () => {
+        try {
+          const token = await AsyncStorage.getItem('userToken')
+          const result = await api.get('/transactions', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+          console.log(result.data)
+          setMyTransactions(result.data.data)
+        } catch (error) {
+          console.log(error)
+        }
+      }
+      getMyTransactions()
+    }, [])
+    
     const render = ({item}) => {
         return(
-            <Transaction item={item} />
+            <Transaction item={item} myData={myData}/>
         )
     }
 
@@ -78,7 +126,7 @@ export default function Home({ navigation }) {
           <Image source={require('../assets/icon.png')} style={{width: '100%', height: '100%'}}></Image>
         </View>
         <View style={{ marginLeft: 20}}>
-          <Text style={{color: 'red', fontWeight: 700}}>Andika</Text>
+          <Text style={{color: 'red', fontWeight: 700}}>{myData.full_name}</Text>
           <Text >Personal Account</Text>
         </View>
         <View style={{flex: 1}}></View>
@@ -86,11 +134,11 @@ export default function Home({ navigation }) {
         <Ionicons name='log-out-outline' size={30} style={{color: 'black', marginLeft: 5}} onPress={() => setModal(true)} />
       </View>
 
-      <LogoutModal modalState={[modal, setModal]} navigation={navigation}/>
+      <LogoutModal modalState={[modal, setModal]} navigation={navigation} logout={logout}/>
 
       <View style={{flexDirection: 'row', paddingHorizontal: 20, display: 'flex', alignItems: 'center', height: 100, width: '100%'}}>
         <View style={{ maxWidth: '60%' }}>
-          <Text style={{fontWeight: 500, fontSize: 18}}>Good Morning, Chelsea</Text>
+          <Text style={{fontWeight: 500, fontSize: 18}}>Good Morning, {myData.full_name}</Text>
           <Text style={{fontSize: 14}}>Check all your incoming and outgoing transaction here</Text>
         </View>
         <View style={{flex: 1}}></View>
@@ -112,14 +160,14 @@ export default function Home({ navigation }) {
             Account No.
         </Text>
         <View style={{flex: 1}}></View>
-        <Text style={styles.textAccount}>100899</Text>
+        <Text style={styles.textAccount}>{myData.account_no}</Text>
       </View>
 
       <View style={{flexDirection: 'row', paddingHorizontal: 20, display: 'flex', alignItems: 'center', height: 100, width: '100%'}}>
         <View style={{ maxWidth: '60%', margin: 10 }}>
           <Text style={{fontSize: 14}}>Balance</Text>
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
-            <Text style={{fontSize: 18, fontWeight: 500}}>Rp 10.000.000</Text>
+            <Text style={{fontSize: 18, fontWeight: 500}}>Rp {Intl.NumberFormat('id').format(myData.balance)}</Text>
             <Image source={require('../assets/eye.png')} style={{width: 20, height: 20, marginLeft: 20}}></Image>
           </View>
         </View>
@@ -142,7 +190,7 @@ export default function Home({ navigation }) {
           </View>
           <View style={{flexDirection: 'column', width: '100%', marginTop: 10}}>
             <FlatList style={{height: 250}}
-                data={data}
+                data={myTransactions}
                 keyExtractor={(item, index) => index}
                 renderItem={render}
             />

@@ -2,15 +2,51 @@ import { useState } from 'react';
 import { StyleSheet, Text, View, Image, ImageBackground, ScrollView, Button, SafeAreaView, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons'
 import ModalComp from './Modal';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {api, loginUser, registerUser} from '../api'
+import { useAuth } from '../context/AuthContext';
+
 
 export default function Form({ state = 'login', fullnameState = useState(''), emailState = useState(''), passwordState = useState(''), avatarUrlState = useState(''), navigation}) {
     const [fullname, setFullname] = fullnameState
     const [email, setEmail] = emailState
     const [password, setPassword] = passwordState
     const [avatarUrl, setAvatarUrl] = avatarUrlState
+    const [phoneNumber, setPhoneNumber] = useState('')
     const [errors, setErrors] = useState({})
     const [agree, setAgree] = useState(false)
     const [modalVisible, setModalVisible] = useState(false)
+
+    const {login} = useAuth()
+    
+    const registerHandler = async () => {
+        let payload = {
+            full_name: fullname,
+            email: email,
+            password: password,
+        }
+        if(phoneNumber != '') payload.phone_number = phoneNumber
+        if(avatarUrl != '') payload.avatar_url = avatarUrl
+        
+        try {
+            const result = await registerUser(payload)
+            console.log(result)
+            navigation.navigate('Login')
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const loginHandler = async () => {
+        try {
+            const token = await loginUser(email, password)
+            await login(token)
+            navigation.navigate('Home')
+        } catch (error) {
+            console.log(error)
+        }
+    }
 
     const modalText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce rhoncus ipsum nec magna venenatis dapibus. Proin eu ultrices nunc. Etiam ex magna, faucibus nec suscipit eget, feugiat ac mauris. In pellentesque arcu est, ut tempus sem sollicitudin quis. Maecenas ultricies a ante sit amet malesuada. Fusce gravida quam ut semper feugiat. Etiam quis dui sit amet eros mollis gravida eu non ante. Phasellus id elementum mi. In interdum ante non malesuada porttitor.\n\n   Nullam vitae lectus sed libero sagittis aliquet non vel arcu. Maecenas nisl elit, placerat sit amet eros sed, posuere rhoncus libero. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Aliquam volutpat dui sed vulputate blandit.\n\n   Duis laoreet risus est, quis commodo massa viverra sit amet. Proin at enim vel urna malesuada efficitur. Nullam velit lacus, blandit ac tellus a, auctor suscipit lacus.\n\n   Sed dignissim eros felis. Duis sed diam libero. Vestibulum nisi erat, tempor a lorem sed, vehicula tempus augue.\n\n   In hac habitasse platea dictumst. Morbi eget urna eget eros fringilla scelerisque. Mauris vehicula erat urna, nec consequat libero pulvinar a. Donec lobortis mauris at mi venenatis volutpat. Praesent dignissim mattis pellentesque. Etiam convallis mauris tellus, eu ultrices lorem eleifend venenatis. Nam vehicula nunc urna, sed facilisis est aliquet sed.\n\n   Nullam et nunc at ligula facilisis commodo id non mauris. Duis eget enim at eros porta vulputate. Donec at risus id nisl laoreet efficitur. Mauris ligula turpis, consequat vel consequat quis, congue in est. Cras ac quam nunc. Integer facilisis turpis at commodo varius.\n\n   Suspendisse eget lorem lorem. Fusce porta, leo et eleifend laoreet, metus arcu pulvinar est, quis rhoncus erat turpis sit amet magna. Vivamus pharetra augue quis purus sollicitudin vehicula. Phasellus varius, est in fermentum aliquam, lorem velit ultrices ipsum, nec rutrum felis sapien quis nunc. Quisque et sem eget tortor varius maximus a in dolor.\n\n   Mauris quis ultricies mauris. Maecenas nibh neque, finibus ut faucibus venenatis, ornare eget ligula. Donec tristique eros ut mauris laoreet vestibulum. Donec laoreet, turpis nec luctus semper, mi urna facilisis ligula, nec maximus urna tortor vel lacus. Nam vel ligula auctor, aliquam felis sit amet, efficitur neque. Pellentesque vehicula iaculis pulvinar. Mauris facilisis nulla sed purus congue viverra.\n\n   Aenean blandit dapibus mi, vitae luctus odio tempor et. Sed id elementum orci. Mauris hendrerit pharetra mauris eget sagittis. Nullam mattis at nunc quis faucibus. Aenean feugiat, felis eget malesuada sollicitudin, dolor est condimentum libero, at pretium lorem ex id lectus. Quisque lectus lorem, semper id faucibus eu, semper sit amet erat. Cras consectetur nisl a tincidunt pharetra. Aenean dignissim faucibus velit eget eleifend.\n\n   Nulla facilisi. Mauris viverra leo at massa ornare, vel consectetur nunc gravida. Vivamus dui velit, ullamcorper id gravida non, ornare at odio. Aenean vel sem et velit egestas mollis. Praesent mi orci, pretium a tortor ornare, facilisis fringilla risus. Phasellus accumsan maximus lorem, vitae faucibus erat finibus ac. Donec eu neque aliquet, viverra dolor sed, fermentum orci. Aenean suscipit pellentesque nibh non luctus."
 
@@ -93,9 +129,7 @@ export default function Form({ state = 'login', fullnameState = useState(''), em
             {state === 'login' ? 
             <>
             <View style={{width: '100%'}}>
-                <TouchableOpacity style={styles.btnLogin} onPress={() => {
-                    navigation.navigate('Home')
-                }}>
+                <TouchableOpacity style={styles.btnLogin} onPress={() => loginHandler()}>
                     <Text style={{textAlign: 'center', color: 'white'}}>
                         Login
                     </Text>
@@ -125,7 +159,7 @@ export default function Form({ state = 'login', fullnameState = useState(''), em
                 </Text>
             </View>
             <View style={{width: '100%'}}>
-                <TouchableOpacity style={agree ? styles.btnLogin : styles.disabledBtn} disabled={!agree}>
+                <TouchableOpacity style={agree ? styles.btnLogin : styles.disabledBtn} disabled={!agree} onPress={() => registerHandler()}>
                     <Text style={{textAlign: 'center', color: 'white'}}>
                         Register
                     </Text>
