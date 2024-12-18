@@ -1,23 +1,27 @@
 import { cloneElement, useState } from 'react';
 import Form from '../components/Form';
-import { StyleSheet, Text, View, Image, ImageBackground, ScrollView, Button, SafeAreaView, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Image, ImageBackground, ScrollView, Button, SafeAreaView, TextInput, TouchableOpacity, Pressable } from 'react-native';
 import { StackActions } from '@react-navigation/native';
+import { Keyboard } from 'react-native';
+import { TouchableWithoutFeedback } from 'react-native-web';
 
 export default function Login({ navigation }) {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     return (
-        <View style={{flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
-            <View style={{marginTop: 100, marginBottom: 150, marginHorizontal: 'auto'}}>
-                <Image source={require('../assets/logo.png')}></Image>
+        <Pressable onPress={Keyboard.dismiss} accessible={false} >
+            <View style={{flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}} >
+                <View style={{marginTop: 100, marginBottom: 150, marginHorizontal: 'auto'}}>
+                    <Image source={require('../assets/logo.png')}></Image>
+                </View>
+                <Form 
+                    state='login' 
+                    emailState={[email, setEmail]} 
+                    passwordState={[password, setPassword]} 
+                    navigation={navigation}
+                    />
             </View>
-            <Form 
-                state='login' 
-                emailState={[email, setEmail]} 
-                passwordState={[password, setPassword]} 
-                navigation={navigation}
-            />
-        </View>
+        </Pressable>
     )
 }
 

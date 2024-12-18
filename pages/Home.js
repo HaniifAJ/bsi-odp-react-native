@@ -8,10 +8,14 @@ import LogoutModal from '../components/ModalLogout';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
+import { useUser } from '../context/UserContext';
+import { useIsFocused } from '@react-navigation/native';
 
 
 export default function Home({ navigation }) {
   const {user, login, logout} = useAuth()
+
+  const [isShow, setIsShow] = useState(false)
   
   const api = axios.create({
     baseURL: 'http://54.254.164.127/api/v1',
@@ -70,26 +74,12 @@ export default function Home({ navigation }) {
         },
     ]
 
-    const [myData, setMyData] = useState({})
+    const isFocused = useIsFocused()
+
+    const {myData, refreshData} = useUser()
+    useEffect(() => {refreshData(), console.log('mydata', myData)}, [isFocused])
+
     const [myTransactions, setMyTransactions] = useState([])
-    
-    useEffect(() => {
-      const getMyData = async () => {
-        try {
-          const token = await AsyncStorage.getItem('userToken')
-          const result = await api.get('/users/me', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          })
-          console.log(result.data)
-          setMyData(result.data.data)
-        } catch (error) {
-          console.log(error)
-        }
-      }
-      getMyData()
-    }, [])
 
     useEffect(() => {
       const getMyTransactions = async () => {
@@ -100,14 +90,15 @@ export default function Home({ navigation }) {
               'Authorization': `Bearer ${token}`
             }
           })
-          console.log(result.data)
-          setMyTransactions(result.data.data)
+          // console.log(result.data.data)
+          let temp = result.data.data ? result.data.data : []
+          setMyTransactions(temp.reverse())
         } catch (error) {
           console.log(error)
         }
       }
       getMyTransactions()
-    }, [])
+    }, [isFocused])
     
     const render = ({item}) => {
         return(
@@ -123,10 +114,10 @@ export default function Home({ navigation }) {
         </View> */}
       <View style={{flexDirection: 'row', elevation: 3, paddingHorizontal: 20, display: 'flex', alignItems: 'center', height: 80, width: '100%', marginTop: 25}}>
         <View style={{width: 46, height: 46, borderRadius: '100%', overflow: 'hidden', borderWidth: 3, borderColor: '#19918F'}}>
-          <Image source={require('../assets/icon.png')} style={{width: '100%', height: '100%'}}></Image>
+          <Image source={(myData.avatar_url != null ? {uri: myData.avatar_url} : require('../assets/icon.png'))} style={{width: '100%', height: '100%'}}></Image>
         </View>
         <View style={{ marginLeft: 20}}>
-          <Text style={{color: 'red', fontWeight: 700}}>{myData.full_name}</Text>
+          <Text style={{color: 'teal', fontWeight: 700}}>{myData.full_name}</Text>
           <Text >Personal Account</Text>
         </View>
         <View style={{flex: 1}}></View>
@@ -167,8 +158,8 @@ export default function Home({ navigation }) {
         <View style={{ maxWidth: '60%', margin: 10 }}>
           <Text style={{fontSize: 14}}>Balance</Text>
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
-            <Text style={{fontSize: 18, fontWeight: 500}}>Rp {Intl.NumberFormat('id').format(myData.balance)}</Text>
-            <Image source={require('../assets/eye.png')} style={{width: 20, height: 20, marginLeft: 20}}></Image>
+            <Text style={{fontSize: 18, fontWeight: 500}}>Rp {isShow ? `${Intl.NumberFormat('id').format(myData.balance)}` : '***********'}</Text>
+            <Ionicons name={isShow ? 'eye-outline' : 'eye-off-outline'} size={20} style={{marginLeft: 20}} onPress={() => setIsShow(!isShow)}/>
           </View>
         </View>
         <View style={{flex: 1}}></View>

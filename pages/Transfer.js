@@ -9,23 +9,40 @@ import {
   TextInput,
   SafeAreaView,
   TouchableOpacity,
+  Pressable,
+  Keyboard,
 } from "react-native";
 import Box from "../components/Box";
-import { cloneElement, useState } from "react";
+import { cloneElement, useState, useEffect } from "react";
 import Transaction from "../components/Transaction";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {api} from '../api'
+import { useUser } from "../context/UserContext";
+import { handlerError } from "../utils/handlerError";
+import { useIsFocused } from "@react-navigation/native";
 
 export default function Transfer({ navigation }) {
   const [receiver, setReceiver] = useState("");
-  const [transfer, setTransfer] = useState(0);
+  const [amount, setAmount] = useState(0);
   const [notes, setNotes] = useState("");
+
+  const {myData, refreshData} = useUser()
+  const isFocused = useIsFocused()
+  useEffect(() => {refreshData()}, [isFocused])
 
   const createTransfer = async () => {
     console.log('hai')
+    console.log(receiver)
+    if(amount > myData.balance) {
+      alert('Balance is not enough')
+      return
+    }
     let payload = {
       type: 'd',
       from_to: receiver,
       amount: amount,
     }
+    console.log('ok')
     if(notes != '') payload.description = notes
     try {
       console.log('token')
@@ -36,16 +53,19 @@ export default function Transfer({ navigation }) {
         }
       })
       console.log(response.data)
+      alert('Transfer Success!')
     } catch (error) {
-      console.log(error)
+      handlerError(error)
     }
   }
 
   return (
     <SafeAreaView>
+      <Pressable onPress={Keyboard.dismiss} accessible={false} >
+
       <View
         style={{ flexDirection: 'column', justifyContent: "space-between", height: '100%' }}
-      >
+        >
         <View style={{ flexDirection: "column" }}>
           <View
             style={{
@@ -56,16 +76,16 @@ export default function Transfer({ navigation }) {
               justifyContent: "flex-start",
               alignItems: "center",
             }}
-          >
+            >
             <Text style={{ color: "white" }}>To:</Text>
             <TextInput
-              style={{ color: "white" }}
+              style={{ color: "white", width: '100%' }}
               value={receiver}
               onChangeText={setReceiver}
               placeholder="Penerima"
               placeholderTextColor="white"
               keyboardType="numeric"
-            />
+              />
           </View>
           <View style={{backgroundColor: 'white', marginTop: 20, paddingHorizontal: 20, paddingVertical: 30}}>
             <Text style={{ color: '#B3B3B3' }}>Amount</Text>
@@ -86,12 +106,12 @@ export default function Transfer({ navigation }) {
               <TextInput
                 style={{ verticalAlign: "middle", fontSize: 28, width: '100%' }}
                 value={
-                  transfer == 0 ? "" : Intl.NumberFormat("id").format(transfer)
+                  !Number.isNaN(amount) ? (amount == 0 ? "" : Intl.NumberFormat("id").format(amount)) : ''
                 }
                 placeholder="0"
                 keyboardType="numeric"
                 onChangeText={(text) =>
-                  setTransfer(reverseFormatNumber(text, "id"))
+                  setAmount(reverseFormatNumber(text, "id"))
                 }
                 />
             </View>
@@ -103,7 +123,7 @@ export default function Transfer({ navigation }) {
               }}
               >
               <Text style={{color: '#B3B3B3'}}>Balance</Text>
-              <Text style={{color: '#B3B3B3'}}>IDR 10.000.000</Text>
+              <Text style={{color: '#B3B3B3'}}>IDR {Intl.NumberFormat('id-ID').format(myData.balance)}</Text>
             </View>
           </View>
           
@@ -130,13 +150,14 @@ export default function Transfer({ navigation }) {
         </View>
         <View style={{flex: 1}}></View>
         <View style={{ width: "100%", alignSelf: 'flex-end'}}>
-          <TouchableOpacity style={styles.btnLogin}>
+          <TouchableOpacity style={styles.btnLogin} onPress={() => createTransfer()}>
             <Text style={{ textAlign: "center", color: "white" }}>
               Transfer
             </Text>
           </TouchableOpacity>
         </View>
       </View>
+    </Pressable>
     </SafeAreaView>
   );
 }
@@ -146,7 +167,7 @@ function reverseFormatNumber(val, locale) {
   var decimal = new Intl.NumberFormat(locale).format(1.1).replace(/1/g, "");
   var reversedVal = val.replace(new RegExp("\\" + group, "g"), "");
   reversedVal = reversedVal.replace(new RegExp("\\" + decimal, "g"), ".");
-  return Number.isNaN(reversedVal) ? 0 : reversedVal;
+  return Number.isNaN(reversedVal) ? 0 : Number(reversedVal);
 }
 
 const styles = StyleSheet.create({

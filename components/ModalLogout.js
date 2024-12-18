@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Alert, Modal, StyleSheet, Text, Button, View, SafeAreaView, Pressable, ScrollView} from 'react-native';
+import {Alert, Modal, StyleSheet, Text, Button, View, SafeAreaView, Pressable, ScrollView, TouchableWithoutFeedback} from 'react-native';
 
 export default function LogoutModal({modalState = useState(false), navigation, logout}) {
   const [modalVisible, setModalVisible] = modalState;
@@ -9,9 +9,13 @@ export default function LogoutModal({modalState = useState(false), navigation, l
         onRequestClose={() => setModalVisible(false)} //perintah menutup modal
         visible={modalVisible} // mengatur modal muncul
         presentationStyle='pageSheet' // untuk mengatur tampilan modal (untuk ios aza)
-        animationType="slide" // untuk mengatur animasi modal
+        animationType='fade' // untuk mengatur animasi modal
         transparent={true} // untuk mengatur transparansi modal
         >
+          <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+            <View style={styles.modalOverlay} />
+          </TouchableWithoutFeedback>
+
             <View style={styles.modalView}>
               <Text style={styles.modalText}>Konfirmasi Logout</Text>
               <View style={{flexDirection: 'row', gap: 30}}>
@@ -50,5 +54,13 @@ const styles = StyleSheet.create({
   modalText: {
     marginBottom: 15,
     textAlign: 'justify',
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.1)'
   },
 });

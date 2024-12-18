@@ -10,29 +10,38 @@ import {
   TextInput,
   SafeAreaView,
   TouchableOpacity,
+  Pressable,
+  Keyboard,
 } from "react-native";
 import Box from "../components/Box";
-import { cloneElement, useState } from "react";
+import { cloneElement, useEffect, useState } from "react";
 import Transaction from "../components/Transaction";
 import {api} from '../api'
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useUser } from "../context/UserContext";
+import { handlerError } from "../utils/handlerError";
+import { useIsFocused } from "@react-navigation/native";
 
 export default function TopUp({ navigation }) {
   const [receiver, setReceiver] = useState("");
   const [amount, setAmount] = useState(0);
   const [notes, setNotes] = useState("");
-  const [payment, setPayment] = useState('')
+  const [payment, setPayment] = useState('BYOND Pay')
+
+  const {myData, refreshData} = useUser()
+  const isFocused = useIsFocused()
+  useEffect(() => {refreshData()}, [isFocused])
 
   const createTopUp = async () => {
     console.log('hai')
+    console.log(payment)
     let payload = {
       type: 'c',
-      from_to: '283763',
+      from_to: payment,
       amount: amount,
     }
     if(notes != '') payload.description = notes
     try {
-      
       console.log('token')
       const token = await AsyncStorage.getItem('userToken')
       const response = await api.post('/transactions', payload, {
@@ -41,16 +50,19 @@ export default function TopUp({ navigation }) {
         }
       })
       console.log(response.data)
+      alert('Top Up Success')
     } catch (error) {
-      console.log(error)
+      handlerError(error)
     }
   }
 
   return (
     <SafeAreaView>
+      <Pressable onPress={Keyboard.dismiss} accessible={false} >
+
       <View
         style={{ flexDirection: 'column', justifyContent: "space-between", height: '100%'}}
-      >
+        >
         <View style={{ flexDirection: "column" }}>
         <View style={{backgroundColor: 'white', marginTop: 20, paddingHorizontal: 20, paddingVertical: 30}}>
             <Text style={{ color: '#B3B3B3' }}>Amount</Text>
@@ -71,7 +83,7 @@ export default function TopUp({ navigation }) {
               <TextInput
                 style={{ verticalAlign: "middle", fontSize: 28, width: '100%' }}
                 value={
-                  amount == 0 ? "" : Intl.NumberFormat("id").format(amount)
+                  !Number.isNaN(amount) ? (amount == 0 ? "" : Intl.NumberFormat("id").format(amount)) : ''
                 }
                 placeholder="0"
                 keyboardType="numeric"
@@ -88,7 +100,7 @@ export default function TopUp({ navigation }) {
               }}
               >
               <Text style={{color: '#B3B3B3'}}>Balance</Text>
-              <Text style={{color: '#B3B3B3'}}>IDR 10.000.000</Text>
+              <Text style={{color: '#B3B3B3'}}>IDR {Intl.NumberFormat('id-ID').format(myData.balance)}</Text>
             </View>
           </View>
           <Picker
@@ -97,7 +109,7 @@ export default function TopUp({ navigation }) {
             onValueChange={setPayment}
             >
             <Picker.Item label="BYOND Pay" value="BYOND Pay" />
-            <Picker.Item label="Virtual Account" value="Virtual Account" />
+            <Picker.Item label="Virtual Account" value="V Account" />
           </Picker>
           <View style={{backgroundColor: 'white', marginTop: 20, paddingHorizontal: 20, paddingBottom: 20}}>
             <TextInput
@@ -129,6 +141,7 @@ export default function TopUp({ navigation }) {
           </TouchableOpacity>
         </View>
       </View>
+      </Pressable>
     </SafeAreaView>
   );
 }
@@ -138,7 +151,7 @@ function reverseFormatNumber(val, locale) {
   var decimal = new Intl.NumberFormat(locale).format(1.1).replace(/1/g, "");
   var reversedVal = val.replace(new RegExp("\\" + group, "g"), "");
   reversedVal = reversedVal.replace(new RegExp("\\" + decimal, "g"), ".");
-  return Number.isNaN(reversedVal) ? 0 : reversedVal;
+  return Number.isNaN(reversedVal) ? 0 : Number(reversedVal);
 }
 
 const styles = StyleSheet.create({

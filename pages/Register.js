@@ -1,6 +1,7 @@
 import { cloneElement, useState } from 'react';
 import Form from '../components/Form';
-import { StyleSheet, Text, View, Image, ImageBackground, ScrollView, Button, SafeAreaView, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Image, ImageBackground, ScrollView, Button, SafeAreaView, TextInput, TouchableOpacity, Pressable } from 'react-native';
+import { Keyboard } from 'react-native';
 
 export default function Register({ navigation }) {
     const [fullname, setFullname] = useState('')
@@ -9,8 +10,9 @@ export default function Register({ navigation }) {
     const [avatarUrl, setAvatarUrl] = useState('')
 
     return (
+        <Pressable onPress={Keyboard.dismiss} accessible={false} >
         <View style={{flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
-            <View style={{marginTop: 100, marginBottom: 150, marginHorizontal: 'auto'}}>
+            <View style={{marginTop: 100, marginBottom: 100, marginHorizontal: 'auto'}}>
                 <Image source={require('../assets/logo.png')}></Image>
             </View>
             <Form 
@@ -21,6 +23,7 @@ export default function Register({ navigation }) {
                 avatarUrlState={[avatarUrl, setAvatarUrl]}
                 navigation={navigation}/>
         </View>
+        </Pressable>
     )
 }
 

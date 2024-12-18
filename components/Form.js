@@ -6,6 +6,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {api, loginUser, registerUser} from '../api'
 import { useAuth } from '../context/AuthContext';
+import { handlerError } from '../utils/handlerError';
 
 
 export default function Form({ state = 'login', fullnameState = useState(''), emailState = useState(''), passwordState = useState(''), avatarUrlState = useState(''), navigation}) {
@@ -31,10 +32,10 @@ export default function Form({ state = 'login', fullnameState = useState(''), em
         
         try {
             const result = await registerUser(payload)
-            console.log(result)
+            console.log(result.data)
             navigation.navigate('Login')
         } catch (error) {
-            console.log(error)
+            handlerError(error)
         }
     }
 
@@ -42,9 +43,9 @@ export default function Form({ state = 'login', fullnameState = useState(''), em
         try {
             const token = await loginUser(email, password)
             await login(token)
-            navigation.navigate('Home')
+            // navigation.navigate('Home')
         } catch (error) {
-            console.log(error)
+            handlerError(error)
         }
     }
 
@@ -52,7 +53,7 @@ export default function Form({ state = 'login', fullnameState = useState(''), em
 
 
     const validateEmail = (email) => {
-        const validEmail = /^[^\s@]+@[^\@]+$/.test(email)
+        const validEmail = /^[^\s@]+@[^\@]+\.[^\@]+$/.test(email)
         if(!validEmail) {
             setErrors({
                 ...errors,
@@ -86,7 +87,7 @@ export default function Form({ state = 'login', fullnameState = useState(''), em
 
     return (
         <View style={{width: '100%'}}>
-            <KeyboardAvoidingView>
+            <KeyboardAvoidingView on>
                 {state === 'register' &&
                 <TextInput
                 style={styles.input}

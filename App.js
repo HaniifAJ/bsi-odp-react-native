@@ -9,39 +9,41 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { useEffect } from 'react';
+import { UserProvider } from './context/UserContext';
 
 const Tab = createBottomTabNavigator();
 
 function MyTabs() {
   return (
-    <Tab.Navigator
-  screenOptions={({ route }) => ({
-    tabBarIcon: ({ focused, color, size }) => {
-      let iconName;
+    <UserProvider>
+      <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+          
+          if (route.name === 'MyHome') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Transfer') {
+            iconName = focused ? 'swap-horizontal' : 'swap-horizontal-outline';
+          } else if (route.name === 'TopUp') {
+            iconName = focused ? 'wallet' : 'wallet-outline';
+          }
 
-      if (route.name === 'Home') {
-        iconName = focused ? 'home' : 'home-outline';
-      } else if (route.name === 'Transfer') {
-        iconName = focused ? 'swap-horizontal' : 'swap-horizontal-outline';
-      } else if (route.name === 'TopUp') {
-        iconName = focused ? 'wallet' : 'wallet-outline';
-      }
-
-      return <Ionicons name={iconName} size={size} color={color} />;
-    },
-    tabBarActiveTintColor: 'blue',
-    tabBarInactiveTintColor: 'gray',
-    tabBarStyle: {
-      height: 50,
-      paddingBottom: 10,
-    },
-  })}
->
-  <Tab.Screen name="Home" component={Home} options={{headerShown: false}}/>
-  <Tab.Screen name="Transfer" component={Transfer} />
-  <Tab.Screen name="TopUp" component={TopUp} />
-</Tab.Navigator>
-
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: 'blue',
+        tabBarInactiveTintColor: 'gray',
+        tabBarStyle: {
+          height: 50,
+          paddingBottom: 10,
+        },
+      })}
+    >
+      <Tab.Screen name="MyHome" component={Home} options={{headerShown: false}}/>
+      <Tab.Screen name="Transfer" component={Transfer} />
+      <Tab.Screen name="TopUp" component={TopUp} />
+    </Tab.Navigator>
+  </UserProvider>
   );
 }
 
@@ -52,7 +54,7 @@ function Route() {
   useEffect(() => {getToken()}, [])
   return (
     <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator initialRouteName={user? 'Home' : 'Login'}>
         {!user ? (
           <>
           <Stack.Screen 

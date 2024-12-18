@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "bsides24",
-    "slug": "bsides24",
+    "slug": "walled-odp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -19,10 +19,30 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.haniifaj.walledodp"
     },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android":{
+            "usesCleartextTraffic": true
+          },
+          "ios": {
+            "flipper": true
+          }
+        }
+      ]
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "bb5f1add-380b-4b1b-853d-36c32612420f"
+      }
+    },
+    "owner": "haniifaj"
   }
 }
